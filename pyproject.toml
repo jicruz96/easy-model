@@ -1,11 +1,11 @@
 [tool.poetry]
-name = "easy-model"
+name = "easydatamodel"
 version = "0.0.1"
 description = "The easiest way to create type-safe dataclasses in Python."
 authors = ["J.I. Cruz <hello@jicruz.com>"]
 license = "MIT"
 readme = "README.md"
-repository = "https://github.com/jicruz96/easy-model"
+repository = "https://github.com/jicruz96/easydatamodel"
 keywords = [
   "data validation",
   "dataclasses",

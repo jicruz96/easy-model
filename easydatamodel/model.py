@@ -10,12 +10,12 @@ from .field import FieldInfo
 
 
 class Model(metaclass=ModelMeta):
-    """Base class for easy_model models.
+    """Base class for easydatamodel models.
 
     ### Usage
 
     ```python
-    from easy_model import Model
+    from easydatamodel import Model
 
     class Person(Model):
         name: str

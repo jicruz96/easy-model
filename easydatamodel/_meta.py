@@ -19,7 +19,7 @@ class ModelMeta(type):
 
     def __new__(mcs, class_name: str, bases: tuple[type, ...], namespace: dict[str, Any]) -> type["Model"]:
         if "__fields_map__" in namespace:
-            raise InvalidModelError("Cannot have a '__fields_map__' attribute in a easy_model Model.")
+            raise InvalidModelError("Cannot have a '__fields_map__' attribute in a easydatamodel Model.")
         if "__annotations__" not in namespace:
             namespace["__annotations__"] = {}
         annotations: dict[str, Any] = namespace["__annotations__"]

@@ -24,7 +24,7 @@ def Field(
     compare: bool = True,
     metadata: typing.Optional[Mapping[typing.Any, typing.Any]] = None,
 ) -> typing.Any:
-    """Provide specific configuration information for an easy_model field.
+    """Provide specific configuration information for an easydatamodel field.
 
     Attributes:
         default: default field value.
@@ -60,7 +60,7 @@ def Field(
 
 
 class FieldInfo:
-    """Represents a field in a easy_model model.
+    """Represents a field in a easydatamodel model.
 
     Attributes:
         default: default field value.
