@@ -9,6 +9,7 @@ from .field import FieldInfo
 if TYPE_CHECKING:
     from .model import Model
 
+from collections import OrderedDict
 
 ModelFieldMap = MappingProxyType[str, FieldInfo]
 
@@ -23,16 +24,16 @@ class ModelMeta(type):
         if "__annotations__" not in namespace:
             namespace["__annotations__"] = {}
         annotations: dict[str, Any] = namespace["__annotations__"]
-        fields_from_annotations: dict[str, FieldInfo] = {
-            name: mcs.__fields_class__(name=name, type=annotation)
+        fields_from_annotations: OrderedDict[str, FieldInfo] = OrderedDict(
+            (name, mcs.__fields_class__(name=name, type=annotation))
             for name, annotation in annotations.items()
             if not name.startswith("_")
-        }
-        fields_from_namespace = {
-            name: (
-                value
+        )
+        fields_from_namespace = OrderedDict(
+            (
+                (name, value)
                 if isinstance(value, mcs.__fields_class__)
-                else mcs.__fields_class__(name=name, default=value, type=annotations.get(name, UNASSIGNED))
+                else (name, mcs.__fields_class__(name=name, default=value, type=annotations.get(name, UNASSIGNED)))
             )
             for name, value in namespace.items()
             # skip private attributes
@@ -41,10 +42,10 @@ class ModelMeta(type):
             and not (inspect.isfunction(value) or inspect.ismethod(value) or isinstance(value, classmethod))
             # skip properties
             and not isinstance(value, property)
-        }
-        model_fields_map = {**fields_from_annotations, **fields_from_namespace}
-        bases_classfields_map: dict[str, FieldInfo] = {}
-        bases_fields_map: dict[str, FieldInfo] = {}
+        )
+        model_fields_map = OrderedDict({**fields_from_annotations, **fields_from_namespace})
+        bases_classfields_map: OrderedDict[str, FieldInfo] = OrderedDict()
+        bases_fields_map: OrderedDict[str, FieldInfo] = OrderedDict()
         for base in bases:
             if isinstance(base, mcs):
                 for name, field in base.__fields_map__.items():
@@ -54,7 +55,7 @@ class ModelMeta(type):
                         else:
                             bases_fields_map[name] = field.copy()
                             namespace["__annotations__"][name] = field.type
-        namespace.update(model_fields_map)
         namespace.update(bases_fields_map)
-        namespace["__fields_map__"] = ModelFieldMap({**model_fields_map, **bases_fields_map, **bases_classfields_map})
+        namespace.update(model_fields_map)
+        namespace["__fields_map__"] = ModelFieldMap({**bases_classfields_map, **model_fields_map, **bases_fields_map})
         return super().__new__(mcs, class_name, bases, namespace)
