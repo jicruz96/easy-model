@@ -12,3 +12,11 @@ class InvalidModelError(Exception):
     """
 
     pass
+
+
+class FieldTypeUnassignedError(Exception):
+    """
+    Raised when a Field's type is requested but not assigned yet.
+    """
+
+    pass

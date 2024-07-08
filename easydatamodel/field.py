@@ -6,7 +6,7 @@ import warnings
 from collections.abc import Callable, Mapping
 
 from ._typing import UNASSIGNED, UnassignedType, check_type, is_classvar, is_nested_generic_alias
-from .exceptions import InvalidFieldError
+from .exceptions import FieldTypeUnassignedError, InvalidFieldError
 
 CLASSVAR_PATTERN = re.compile(r"(typing\.)?ClassVar(\[(?P<inner_type>.*)\])?")
 
@@ -116,7 +116,7 @@ class FieldInfo:
         else:
             field_name = f"{self.__class__.__name__} {self.__name}"
         return (
-            f"<{field_name} type={self.type} default={self.default} default_factory={self.default_factory} "
+            f"<{field_name} type={self.__type} default={self.default} default_factory={self.default_factory} "
             f"init={self.init} repr={self.repr} compare={self.compare} metadata={self.metadata} choices={self.choices}>"
         )
 
@@ -131,7 +131,9 @@ class FieldInfo:
         return self.__name
 
     @property
-    def type(self) -> type | UnassignedType:
+    def type(self) -> type:
+        if isinstance(self.__type, UnassignedType):
+            raise FieldTypeUnassignedError("Field type has not been set")
         return self.__type
 
     @property
@@ -231,7 +233,7 @@ class FieldInfo:
     def copy(self) -> FieldInfo:
         """Return a copy of the field without its owner and name values set so it can be used in another class."""
         return self.__class__(
-            type=self.type,
+            type=self.__type,
             default=self.default,
             default_factory=self.default_factory,
             const=self.const,
