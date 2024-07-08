@@ -31,7 +31,6 @@ def Field(
         default_factory: 0-argument function called to initialize a field's value.
         init: if True, the field will be a parameter to the class's __init__() function. If False, it is up to the
             caller to set a default or a default_factory.
-        index: if True, the field will be a table index for the model.
         choices: If provided, allowed values for the field.
         repr: if True, the field will be included in the object's string representation.
         compare: if True, the field will be considered when comparing objects to the model (i.e. '==' and '!=')
@@ -67,7 +66,6 @@ class FieldInfo:
         default_factory: 0-argument function called to initialize a field's value.
         init: if True, the field will be a parameter to the class's __init__() function. If False, it is up to the
             caller to set a default or a default_factory.
-        index: if True, the field will be a table index for the model.
         choices: If provided, allowed values for the field.
         repr: if True, the field will be included in the object's string representation.
         compare: if True, the field will be considered when comparing objects to the model (i.e. '==' and '!=')
