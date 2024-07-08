@@ -34,11 +34,12 @@ pip install easydatamodel
 
 ## `easydatamodel` vs. `pydantic` and `dataclasses`
 
-| Feature                             | `easydatamodel` | `pydantic`     | `dataclasses` |
-| ----------------------------------- | --------------- | -------------- | ------------- |
-| **Validates data on instantiation** | ✅               | ✅              | ❌             |
-| **Validates data on assignment**    | ✅               | Off by default | ❌             |
-| **`ClassVar` validation**           | ✅               | ❌              | ❌             |
+| Feature                                | `easydatamodel` | `pydantic`     | `dataclasses` |
+| -------------------------------------- | --------------- | -------------- | ------------- |
+| **Validates data on instantiation**    | ✅               | ✅              | ❌             |
+| **Validates data on assignment**       | ✅               | Off by default | ❌             |
+| **`ClassVar` validation**              | ✅               | ❌              | ❌             |
+| **Automagic type coercion by default** | ❌               | ✅              | ❌             |
 
 ### Should you use `easydatamodel`?
 
