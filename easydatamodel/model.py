@@ -1,15 +1,15 @@
 from __future__ import annotations
 
 import json
-from typing import Any
+from typing import Any, Generic
 
 from ._meta import ModelMeta
 from ._typing import UNASSIGNED, UnassignedType
 from .exceptions import InvalidModelError
-from .field import FieldInfo
+from .field import FieldInfo, FieldType, ModelFieldMap
 
 
-class Model(metaclass=ModelMeta[FieldInfo]):
+class Model(Generic[FieldType], metaclass=ModelMeta):
     """Base class for easydatamodel models.
 
     ### Usage
@@ -36,7 +36,8 @@ class Model(metaclass=ModelMeta[FieldInfo]):
     ```
     """
 
-    __field_class__ = FieldInfo
+    __field_class__: type[FieldType] = FieldInfo  # type: ignore
+    __fields_map__: ModelFieldMap[FieldType]
 
     def __init__(self, **kwargs: Any):
         self.__init_kwargs__(kwargs)

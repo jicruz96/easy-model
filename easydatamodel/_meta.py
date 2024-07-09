@@ -1,16 +1,13 @@
 import inspect
 from collections import OrderedDict
-from typing import Any, Generic, cast
+from typing import Any, cast
 
 from ._typing import UNASSIGNED
 from .exceptions import InvalidModelError
-from .field import FieldInfo, ModelFieldMap, T
+from .field import FieldInfo, ModelFieldMap
 
 
-class ModelMeta(Generic[T], type):
-
-    __field_class__ = FieldInfo
-    __fields_map__: ModelFieldMap[T]
+class ModelMeta(type):
 
     def __new__(mcs, class_name: str, bases: tuple[type, ...], namespace: dict[str, Any]):
         field_class = mcs.get_field_class(class_name, bases, namespace)
@@ -19,7 +16,7 @@ class ModelMeta(Generic[T], type):
         if "__annotations__" not in namespace:
             namespace["__annotations__"] = {}
         annotations: dict[str, Any] = namespace["__annotations__"]
-        fields_from_annotations: OrderedDict[str, T] = OrderedDict(
+        fields_from_annotations: OrderedDict[str, FieldInfo] = OrderedDict(
             (name, field_class.from_annotation(name=name, type=annotation))
             for name, annotation in annotations.items()
             if not name.startswith("_")
@@ -46,7 +43,8 @@ class ModelMeta(Generic[T], type):
         bases_fields_map: OrderedDict[str, FieldInfo] = OrderedDict()
         for base in bases:
             if isinstance(base, mcs):
-                for name, field in base.__fields_map__.items():
+                base_model_fields_map = cast(ModelFieldMap[FieldInfo], base.__fields_map__)  # type: ignore
+                for name, field in base_model_fields_map.items():
                     if name not in model_fields_map:
                         if field.classfield:
                             bases_classfields_map[name] = field.copy()
@@ -59,7 +57,7 @@ class ModelMeta(Generic[T], type):
         return super().__new__(mcs, class_name, bases, namespace)
 
     @classmethod
-    def get_field_class(mcs, class_name: str, bases: tuple[type, ...], namespace: dict[str, Any]) -> type[T]:
+    def get_field_class(mcs, class_name: str, bases: tuple[type, ...], namespace: dict[str, Any]) -> type[FieldInfo]:
         field_class: Any = None
         if "__field_class__" in namespace:
             field_class = namespace["__field_class__"]
@@ -72,4 +70,4 @@ class ModelMeta(Generic[T], type):
             raise InvalidModelError(f"{class_name} nor any of its bases has a __field_class__")
         if not issubclass(field_class, FieldInfo):
             raise InvalidModelError(f"{class_name}.__field_class__ must be a subclass of {FieldInfo.__name__}")
-        return cast(type[T], field_class)
+        return field_class

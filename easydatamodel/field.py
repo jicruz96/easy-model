@@ -12,6 +12,8 @@ from .exceptions import FieldTypeUnassignedError, InvalidFieldError
 CLASSVAR_PATTERN = re.compile(r"(typing\.)?ClassVar(\[(?P<inner_type>.*)\])?")
 
 if typing.TYPE_CHECKING:
+    from typing import Self
+
     from .model import Model
 
 
@@ -109,7 +111,7 @@ class FieldInfo:
         self.__init = init
         self.__choices = list(choices or [])
         self.__type = type if type is not None else None.__class__
-        self.__owner: type["Model"] | None = None
+        self.__owner: type["Model[Self]"] | None = None
 
     def __repr__(self) -> str:
         if self.owner:
@@ -122,15 +124,15 @@ class FieldInfo:
         )
 
     @classmethod
-    def from_annotation(cls, name: str, type: typing.Any) -> typing.Self:
+    def from_annotation(cls, name: str, type: typing.Any) -> Self:
         return cls(name=name, type=type)
 
     @classmethod
-    def from_namespace(cls, name: str, default: typing.Any, type: typing.Any) -> typing.Self:
+    def from_namespace(cls, name: str, default: typing.Any, type: typing.Any) -> Self:
         return cls(name=name, default=default, type=type)
 
     @property
-    def owner(self) -> type["Model"] | None:
+    def owner(self) -> type["Model[Self]"] | None:
         return self.__owner
 
     @property
@@ -187,7 +189,7 @@ class FieldInfo:
             and CLASSVAR_PATTERN.match(self.__type) is not None
         )
 
-    def __get__(self, instance: typing.Union["Model", None], owner: type["Model"]) -> typing.Any:
+    def __get__(self, instance: typing.Union["Model[Self]", None], owner: type["Model[Self]"]) -> typing.Any:
         if instance is None:
             if not self.classfield:
                 raise AttributeError(f"{self.__class__.__name__!r} object has no attribute {self.name!r}")
@@ -199,7 +201,7 @@ class FieldInfo:
             return self.default
         return instance.__dict__[self.name]
 
-    def __set__(self, instance: "Model", value: typing.Any) -> None:
+    def __set__(self, instance: "Model[Self]", value: typing.Any) -> None:
         if self.const and self.name in instance.__dict__:
             raise ValueError(f"Cannot set const field {self.name!r}")
         if self.choices and value not in self.choices:
@@ -211,7 +213,7 @@ class FieldInfo:
         check_type(value, type_)
         instance.__dict__[self.name] = value
 
-    def __set_name__(self, owner: type["Model"], name: str) -> None:
+    def __set_name__(self, owner: type["Model[Self]"], name: str) -> None:
         if self.__owner:
             raise InvalidFieldError(f"Field {name!r} on {owner.__name__} has already been set to {self.__owner}")
 
@@ -291,5 +293,5 @@ def _get_inner_type_from_classvar(type_: typing.Any) -> typing.Any:
     return None
 
 
-T = typing.TypeVar("T", bound=FieldInfo)
-ModelFieldMap = MappingProxyType[str, T]
+FieldType = typing.TypeVar("FieldType", bound=FieldInfo)
+ModelFieldMap = MappingProxyType[str, FieldType]
