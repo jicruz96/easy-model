@@ -60,19 +60,19 @@ def check_type(
     if type_ is typing.Any:
         return True
 
-    if _is_union_type(type_):
+    if is_union_type(type_):
         return _validate_nested_types(value, type_.__args__, check_class, namespace, suppress_exceptions)
 
     if isinstance(type_, typing.ForwardRef):
         return check_type(value, type_.__forward_arg__, check_class, namespace, suppress_exceptions)
 
-    if _is_alias(type_):
+    if is_alias(type_):
         return check_type(value, type_.__origin__, check_class, namespace, suppress_exceptions)
 
-    if is_classvar(type_) or _is_optional_type(type_) or _is_Type(type_):
+    if is_classvar(type_) or is_optional_type(type_) or is_Type(type_):
         if len(type_.__args__) != 1:
             raise TypeError("ClassVar, Optional, and Type should have exactly one argument")
-        check_class = _is_Type(type_)
+        check_class = is_Type(type_)
         return check_type(value, type_.__args__[0], check_class, namespace, suppress_exceptions)
 
     if check_class:
@@ -95,19 +95,23 @@ def is_classvar(t: typing.Any) -> bool:
     return t is typing.ClassVar or (is_nested_generic_alias(t) and t.__origin__ is typing.ClassVar)
 
 
-def _is_optional_type(t: typing.Any) -> bool:
-    return isinstance(t, _UnionGenericAlias) and t._name == "typing.Optional"
+def is_optional_type(t: typing.Any) -> bool:
+    return (
+        isinstance(t, _UnionGenericAlias)
+        and t._name == "typing.Optional"
+        or (is_union_type(t) and type(None) in t.__args__)
+    )
 
 
-def _is_union_type(t: typing.Any) -> bool:
+def is_union_type(t: typing.Any) -> bool:
     return isinstance(t, types.UnionType) or isinstance(t, _UnionGenericAlias)
 
 
-def _is_alias(t: typing.Any) -> bool:
+def is_alias(t: typing.Any) -> bool:
     return is_nested_generic_alias(t) or isinstance(t, _SpecialGenericAlias)
 
 
-def _is_Type(t: typing.Any) -> bool:
+def is_Type(t: typing.Any) -> bool:
     return is_nested_generic_alias(t) and t.__name__ == "Type"
 
 
