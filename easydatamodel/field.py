@@ -200,7 +200,7 @@ class FieldInfo:
         return instance.__dict__[self.name]
 
     def __set__(self, instance: "Model", value: typing.Any) -> None:
-        if self.const:
+        if self.const and self.name in instance.__dict__:
             raise ValueError(f"Cannot set const field {self.name!r}")
         if self.choices and value not in self.choices:
             raise ValueError(f"Value must be one of {', '.join(map(repr,self.choices))} but value was {value}")
