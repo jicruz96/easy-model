@@ -1,43 +1,41 @@
 import inspect
-from types import MappingProxyType
-from typing import TYPE_CHECKING, Any
+from collections import OrderedDict
+from typing import Any, Generic, cast
 
 from ._typing import UNASSIGNED
 from .exceptions import InvalidModelError
-from .field import FieldInfo
-
-if TYPE_CHECKING:
-    from .model import Model
-
-from collections import OrderedDict
-
-ModelFieldMap = MappingProxyType[str, FieldInfo]
+from .field import FieldInfo, ModelFieldMap, T
 
 
-class ModelMeta(type):
-    __fields_map__: ModelFieldMap
-    __fields_class__: type[FieldInfo] = FieldInfo
+class ModelMeta(Generic[T], type):
 
-    def __new__(mcs, class_name: str, bases: tuple[type, ...], namespace: dict[str, Any]) -> type["Model"]:
+    __field_class__ = FieldInfo
+    __fields_map__: ModelFieldMap[T]
+
+    def __new__(mcs, class_name: str, bases: tuple[type, ...], namespace: dict[str, Any]):
+        field_class = mcs.get_field_class(class_name, bases, namespace)
         if "__fields_map__" in namespace:
             raise InvalidModelError("Cannot have a '__fields_map__' attribute in a easydatamodel Model.")
         if "__annotations__" not in namespace:
             namespace["__annotations__"] = {}
         annotations: dict[str, Any] = namespace["__annotations__"]
-        fields_from_annotations: OrderedDict[str, FieldInfo] = OrderedDict(
-            (name, mcs.__fields_class__(name=name, type=annotation))
+        fields_from_annotations: OrderedDict[str, T] = OrderedDict(
+            (name, field_class.from_annotation(name=name, type=annotation))
             for name, annotation in annotations.items()
             if not name.startswith("_")
         )
         fields_from_namespace = OrderedDict(
             (
                 (name, value)
-                if isinstance(value, mcs.__fields_class__)
-                else (name, mcs.__fields_class__(name=name, default=value, type=annotations.get(name, UNASSIGNED)))
+                if isinstance(value, field_class)
+                else (
+                    name,
+                    field_class.from_namespace(name=name, default=value, type=annotations.get(name, UNASSIGNED)),
+                )
             )
             for name, value in namespace.items()
             # skip private attributes
-            if not (name.startswith("_") and not isinstance(value, mcs.__fields_class__))
+            if not (name.startswith("_") and not isinstance(value, field_class))
             # skip classmethods and functions
             and not (inspect.isfunction(value) or inspect.ismethod(value) or isinstance(value, classmethod))
             # skip properties
@@ -59,3 +57,19 @@ class ModelMeta(type):
         namespace.update(model_fields_map)
         namespace["__fields_map__"] = ModelFieldMap({**bases_classfields_map, **model_fields_map, **bases_fields_map})
         return super().__new__(mcs, class_name, bases, namespace)
+
+    @classmethod
+    def get_field_class(mcs, class_name: str, bases: tuple[type, ...], namespace: dict[str, Any]) -> type[T]:
+        field_class: Any = None
+        if "__field_class__" in namespace:
+            field_class = namespace["__field_class__"]
+        else:
+            for base in bases:
+                if hasattr(base, "__field_class__"):
+                    field_class = base.__field_class__  # type: ignore
+                    break
+        if not field_class:
+            raise InvalidModelError(f"{class_name} nor any of its bases has a __field_class__")
+        if not issubclass(field_class, FieldInfo):
+            raise InvalidModelError(f"{class_name}.__field_class__ must be a subclass of {FieldInfo.__name__}")
+        return cast(type[T], field_class)

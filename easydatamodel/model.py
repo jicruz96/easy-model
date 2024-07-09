@@ -3,13 +3,13 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from ._meta import ModelFieldMap, ModelMeta
+from ._meta import ModelMeta
 from ._typing import UNASSIGNED, UnassignedType
 from .exceptions import InvalidModelError
 from .field import FieldInfo
 
 
-class Model(metaclass=ModelMeta):
+class Model(metaclass=ModelMeta[FieldInfo]):
     """Base class for easydatamodel models.
 
     ### Usage
@@ -36,7 +36,7 @@ class Model(metaclass=ModelMeta):
     ```
     """
 
-    __fields_map__: ModelFieldMap
+    __field_class__ = FieldInfo
 
     def __init__(self, **kwargs: Any):
         self.__init_kwargs__(kwargs)

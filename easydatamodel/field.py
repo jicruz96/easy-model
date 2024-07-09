@@ -4,6 +4,7 @@ import re
 import typing
 import warnings
 from collections.abc import Callable, Mapping
+from types import MappingProxyType
 
 from ._typing import UNASSIGNED, UnassignedType, check_type, is_classvar, is_nested_generic_alias
 from .exceptions import FieldTypeUnassignedError, InvalidFieldError
@@ -119,6 +120,14 @@ class FieldInfo:
             f"<{field_name} type={self.__type} default={self.default} default_factory={self.default_factory} "
             f"init={self.init} repr={self.repr} compare={self.compare} metadata={self.metadata} choices={self.choices}>"
         )
+
+    @classmethod
+    def from_annotation(cls, name: str, type: typing.Any) -> typing.Self:
+        return cls(name=name, type=type)
+
+    @classmethod
+    def from_namespace(cls, name: str, default: typing.Any, type: typing.Any) -> typing.Self:
+        return cls(name=name, default=default, type=type)
 
     @property
     def owner(self) -> type["Model"] | None:
@@ -280,3 +289,7 @@ def _get_inner_type_from_classvar(type_: typing.Any) -> typing.Any:
     if is_nested_generic_alias(type_):
         return type_.__args__[0]
     return None
+
+
+T = typing.TypeVar("T", bound=FieldInfo)
+ModelFieldMap = MappingProxyType[str, T]
