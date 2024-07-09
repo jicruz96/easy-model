@@ -61,7 +61,7 @@ class Model(metaclass=ModelMeta):
         if errors:
             raise InvalidModelError("\n" + json.dumps(errors, indent=4))
 
-    def __init_defaults__(self, exclude: set[str] | None = None) -> set[FieldInfo]:
+    def __init_defaults__(self, exclude: set[str] | None = None) -> None:
         exclude = exclude or set()
         fields = {f for f in self.__fields_map__.values() if f.name not in exclude and not f.classfield}
         fields_with_default_factories = {f for f in fields if f.default_factory is not UNASSIGNED}
@@ -75,7 +75,6 @@ class Model(metaclass=ModelMeta):
         for field in fields_with_default_factories:
             assert not isinstance(field.default_factory, UnassignedType)
             setattr(self, field.name, field.default_factory())
-        return fields
 
     def dict(self, *, include: list[str] | None = None, exclude: list[str] | None = None) -> dict[str, Any]:
         include = include or []
