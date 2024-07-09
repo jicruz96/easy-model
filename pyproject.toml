@@ -20,7 +20,7 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.11"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.1.0"
@@ -39,7 +39,7 @@ line_length = 120
 
 [tool.black]
 line-length = 120
-target-version = ['py310']
+target-version = ['py311']
 exclude = '''
 (
   /(
