@@ -88,7 +88,7 @@ class FieldInfo:
         type: typing.Any = UNASSIGNED,
         const: bool = False,
         init: typing.Optional[bool] = None,
-        choices: typing.Optional[list[typing.Any]] = None,
+        choices: typing.Optional[typing.Iterable[typing.Any]] = None,
         repr: bool = True,
         compare: bool = True,
         metadata: typing.Optional[Mapping[typing.Any, typing.Any]] = None,
@@ -107,7 +107,7 @@ class FieldInfo:
         self.__compare = compare
         self.__metadata = metadata or {}
         self.__init = init
-        self.__choices = choices or []
+        self.__choices = list(choices or [])
         self.__type = type if type is not None else None.__class__
         self.__owner: type["Model"] | None = None
 
