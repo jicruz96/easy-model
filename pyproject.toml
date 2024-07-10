@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "easydatamodel"
-version = "0.0.6"
+version = "0.1.0"
 description = "The easiest way to create type-safe dataclasses in Python."
 authors = ["J.I. Cruz <hello@jicruz.com>"]
 license = "MIT"
