@@ -47,7 +47,7 @@ class ModelMeta(type):
                 for name, field in base_model_fields_map.items():
                     if name not in model_fields_map:
                         if field.classfield:
-                            bases_classfields_map[name] = field.copy()
+                            bases_classfields_map[name] = field
                         else:
                             bases_fields_map[name] = field.copy()
                             namespace["__annotations__"][name] = field.type
