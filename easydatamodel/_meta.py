@@ -1,5 +1,6 @@
 import inspect
 from collections import OrderedDict
+from functools import cached_property
 from typing import Any, cast
 
 from ._typing import UNASSIGNED
@@ -37,6 +38,8 @@ class ModelMeta(type):
             and not (inspect.isfunction(value) or inspect.ismethod(value) or isinstance(value, classmethod))
             # skip properties
             and not isinstance(value, property)
+            # skip functools.cached_property objects
+            and not isinstance(value, cached_property)
         )
         model_fields_map = OrderedDict({**fields_from_annotations, **fields_from_namespace})
         bases_classfields_map: OrderedDict[str, FieldInfo] = OrderedDict()
