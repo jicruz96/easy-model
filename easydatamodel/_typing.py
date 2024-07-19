@@ -54,11 +54,19 @@ def check_type(
     if isinstance(type_, str):
         type_ = eval(type_, namespace)
 
-    if type_ is None:
-        return value is None
-
     if type_ is typing.Any:
         return True
+
+    if type_ is None:
+        is_correct = value is None
+        if not is_correct and not suppress_exceptions:
+            raise TypeError(f"Got value {value!r}. Expected None")
+        return is_correct
+
+    if is_literal_type(type_):
+        is_correct = value in type_.__args__
+        if not is_correct and not suppress_exceptions:
+            raise TypeError(f"Got value {value!r}. Expected one of: {', '.join(f'{arg!r}' for arg in type_.__args__)}")
 
     if is_union_type(type_):
         return _validate_nested_types(value, type_.__args__, check_class, namespace, suppress_exceptions)
@@ -85,6 +93,10 @@ def check_type(
             f"Got value {value!r} (of type {type(value).__name__}). Expected a value of type {expected_type}"
         )
     return is_correct_type
+
+
+def is_literal_type(t: typing.Any) -> bool:
+    return is_nested_generic_alias(t) and t.__origin__ is typing.Literal
 
 
 def is_nested_generic_alias(t: typing.Any) -> bool:
