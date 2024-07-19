@@ -111,7 +111,7 @@ class FieldInfo:
         self.__init = init
         self.__choices = list(choices or [])
         self.__type = type if type is not None else None.__class__
-        self.__owner: type["Model[Self]"] | None = None
+        self.__owner: type["Model"] | None = None
 
     def __repr__(self) -> str:
         if self.owner:
@@ -132,7 +132,7 @@ class FieldInfo:
         return cls(name=name, default=default, type=type)
 
     @property
-    def owner(self) -> type["Model[Self]"] | None:
+    def owner(self) -> type["Model"] | None:
         return self.__owner
 
     @property
@@ -189,7 +189,7 @@ class FieldInfo:
             and CLASSVAR_PATTERN.match(self.__type) is not None
         )
 
-    def __get__(self, instance: typing.Union["Model[Self]", None], owner: type["Model[Self]"]) -> typing.Any:
+    def __get__(self, instance: typing.Union["Model", None], owner: type["Model"]) -> typing.Any:
         if instance is None:
             if not self.classfield:
                 raise AttributeError(f"{self.__class__.__name__!r} object has no attribute {self.name!r}")
@@ -201,11 +201,11 @@ class FieldInfo:
             return self.default
         return instance.__dict__[self.name]
 
-    def __set__(self, instance: "Model[Self]", value: typing.Any) -> None:
+    def __set__(self, instance: "Model", value: typing.Any) -> None:
         if self.const and self.name in instance.__dict__:
             raise ValueError(f"Cannot set const field {self.name!r}")
         if self.choices and value not in self.choices:
-            raise ValueError(f"Value must be one of {', '.join(map(repr,self.choices))} but value was {value}")
+            raise ValueError(f"Value must be one of {', '.join(map(repr, self.choices))} but value was {value}")
         if isinstance(self.type, str):
             type_ = typing.get_type_hints(self.__owner)[self.name]
         else:
@@ -213,7 +213,7 @@ class FieldInfo:
         check_type(value, type_)
         instance.__dict__[self.name] = value
 
-    def __set_name__(self, owner: type["Model[Self]"], name: str) -> None:
+    def __set_name__(self, owner: type["Model"], name: str) -> None:
         if self.__owner:
             raise InvalidFieldError(f"Field {name!r} on {owner.__name__} has already been set to {self.__owner}")
 
