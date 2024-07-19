@@ -67,6 +67,7 @@ def check_type(
         is_correct = value in type_.__args__
         if not is_correct and not suppress_exceptions:
             raise TypeError(f"Got value {value!r}. Expected one of: {', '.join(f'{arg!r}' for arg in type_.__args__)}")
+        return is_correct
 
     if is_union_type(type_):
         return _validate_nested_types(value, type_.__args__, check_class, namespace, suppress_exceptions)
