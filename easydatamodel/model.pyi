@@ -4,7 +4,7 @@ from .exceptions import InvalidModelError as InvalidModelError
 from .field import FieldInfo as FieldInfo, FieldType as FieldType, ModelFieldMap as ModelFieldMap
 from typing import Any, Generic
 
-class Model(Generic[FieldType], metaclass=ModelMeta):
+class _GenericModel(Generic[FieldType], metaclass=ModelMeta):
     __field_class__: type[FieldType]
     __fields_map__: ModelFieldMap[FieldType]
     def __init__(self, **kwargs: Any) -> None: ...
@@ -13,3 +13,6 @@ class Model(Generic[FieldType], metaclass=ModelMeta):
     def __init_defaults__(self, exclude: set[str] | None = None) -> None: ...
     def dict(self, *, include: list[str] | None = None, exclude: list[str] | None = None) -> dict[str, Any]: ...
     def __eq__(self, other: object) -> bool: ...
+
+class Model(_GenericModel[FieldInfo]):
+    __field_class__ = FieldInfo

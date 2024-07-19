@@ -9,7 +9,7 @@ from .exceptions import InvalidModelError
 from .field import FieldInfo, FieldType, ModelFieldMap
 
 
-class Model(Generic[FieldType], metaclass=ModelMeta):
+class _GenericModel(Generic[FieldType], metaclass=ModelMeta):
     """Base class for easydatamodel models.
 
     ### Usage
@@ -100,3 +100,7 @@ class Model(Generic[FieldType], metaclass=ModelMeta):
             return False
         exclude = [field.name for field in self.__fields_map__.values() if field.compare is False]
         return self.dict(exclude=exclude) == other.dict(exclude=exclude)
+
+
+class Model(_GenericModel[FieldInfo]):
+    __field_class__ = FieldInfo
